@@ -2,8 +2,7 @@
   "name": "frontend-interview",
   "version": "0.0.0",
   "private": true,
-  "type": "module", 
-  2tgtg
+  "type": "module",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
