@@ -11,6 +11,10 @@ const isLoading = ref(false)
 const isVerified = ref(false)
 const hasError = ref(false)
 const errorMessage = ref('')
+const otp = ref('')
+const otpLength = 6
+const otpItemsPerRow = 2
+const lastVerifiedOtp = ref('')
 
 const resetStatus = () => {
   isVerified.value = false
@@ -18,22 +22,18 @@ const resetStatus = () => {
   errorMessage.value = ''
 }
 
-const handleOtpChange = () => {
-  resetStatus()
-}
-
-const handleOtpComplete = async (otp: string) => {
+const verifyOtp = async (value: string) => {
   if (isLoading.value) {
     return
   }
 
-  resetStatus()
   isLoading.value = true
+  lastVerifiedOtp.value = value
 
   try {
     const response = await $fetch<VerifyOtpResponse>('/api/examples/verify-otp-simple', {
       method: 'POST',
-      body: { otp }
+      body: { otp: value }
     })
 
     const verified = response.success || Boolean(response.data?.verified)
@@ -52,6 +52,21 @@ const handleOtpComplete = async (otp: string) => {
     isLoading.value = false
   }
 }
+
+watch(otp, (value) => {
+  resetStatus()
+
+  if (value.length !== otpLength) {
+    lastVerifiedOtp.value = ''
+    return
+  }
+
+  if (value === lastVerifiedOtp.value) {
+    return
+  }
+
+  verifyOtp(value)
+})
 </script>
 
 <template>
@@ -67,12 +82,12 @@ const handleOtpComplete = async (otp: string) => {
       </div>
 
       <BaseInputOtp
-        :length="6"
+        v-model="otp"
+        :length="otpLength"
+        :n="otpItemsPerRow"
         :error="hasError"
         :error-message="errorMessage"
         :disabled="isLoading"
-        @change="handleOtpChange"
-        @complete="handleOtpComplete"
       />
 
       <p
